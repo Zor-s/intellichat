@@ -1,0 +1,15 @@
+{
+  "name": "intellichat",
+  "version": "1.0.0",
+  "description": "Intellichat - an AI assistant to help you with your daily task!",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Zoren, Dinno",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
