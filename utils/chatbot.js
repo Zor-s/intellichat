@@ -34,7 +34,7 @@ const {
       ],
     });
   
-    const result = await chatSession.sendMessage("INSERT_INPUT_HERE");
+    const result = await chatSession.sendMessage("Hi!");
     console.log(result.response.text());
   }
   
