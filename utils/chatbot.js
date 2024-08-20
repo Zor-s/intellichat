@@ -24,18 +24,18 @@ const {
     maxOutputTokens: 8192,
     responseMimeType: "text/plain",
   };
+
   
-  async function run() {
+  
+  async function getChatResponse(message) {
     const chatSession = model.startChat({
       generationConfig,
-   // safetySettings: Adjust safety settings
-   // See https://ai.google.dev/gemini-api/docs/safety-settings
-      history: [
-      ],
+      history: [],
     });
   
-    const result = await chatSession.sendMessage("Hi!");
-    console.log(result.response.text());
+    const result = await chatSession.sendMessage(message);
+    return result.response.text();
   }
   
-  run();
+  module.exports = { getChatResponse };
+  

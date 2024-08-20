@@ -122,29 +122,28 @@
             </p>
 
             <hr style="border: none; height: 30px" />
-            <!-- User Prompt -->
-            <div class="d-flex justify-content-end mb-3">
-              <div class="space__for__m"></div>
-              <div class="user_prompt_section">
-                <p class="text-light roboto">
-                  This is very dangerous because in 2018 there was a guy called
-                  Povandolakoviscov Kityionshikov. Why did you skip the name,
-                  now I'm not going to finish the story
+            <div class="chatArea">
+              <!-- User Prompt -->
+              <div class="d-flex justify-content-end mb-3">
+                <div class="space__for__m"></div>
+                <div class="user_prompt_section">
+                  <p class="text-light roboto">Example user prompt</p>
+                </div>
+              </div>
+              <!--  response-->
+              <div class="card-content mb-3">
+                <p id="chatResponse" class="text-light roboto">
+                  Example section of response.
                 </p>
               </div>
             </div>
-            <!--  IN THIS SECTION, THIS IS TEH RESULT OF PROMPT USER-->
-            <div class="card-content mb-3">
-              <p class="text-light roboto">
-                Example section of result prompt user.
-              </p>
-            </div>
-
             <hr style="border: none; height: 1000px" />
           </div>
         </div>
-        <div class="text_prompt d-flex align-items-center">
+
+        <form id="chatForm" class="text_prompt d-flex align-items-center">
           <textarea
+            id="userMessage"
             type="text"
             name="user_prompt"
             placeholder="Enter a text!"
@@ -153,8 +152,45 @@
           <button class="btn btn-outline-secondary mx-3">
             <i class="bi bi-send" style="font-size: 1.5em"></i>
           </button>
-        </div>
+        </form>
       </div>
     </div>
+
+    <script>
+      document
+        .getElementById("chatForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const message = document.getElementById("userMessage").value;
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message }),
+          });
+
+          const data = await response.json();
+
+          function formatText(text) {
+            // Replace asterisks with bold tags
+            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+            // Replace single asterisks with bullets (assuming you want an unordered list)
+            text = text.replace(/\*(.*)/g, "<li>$1</li>");
+
+            // Replace ## with h1 bold
+            text = text.replace(/^## (.*)/gm, "<h1><strong>$1</strong></h1>");
+
+            // You can add more replacements for other patterns as needed
+
+            return text;
+          }
+
+          const formattedText = formatText(data.response);
+          document.getElementById("chatResponse").innerHTML = formattedText;
+        });
+    </script>
   </body>
 </html>
