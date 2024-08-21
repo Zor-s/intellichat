@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const port = 3000;
 const path = require("path");
-const { getChatResponse } = require("./utils/chatbot");
+const { resetChatSession, getChatResponse } = require("./utils/chatbot");
 
 // Middleware to parse form data
 app.use(express.urlencoded({ extended: true }));
@@ -14,6 +14,7 @@ app.set("views", path.join(__dirname, "views"));
 app.post("/submit", (req, res) => {
   const username = req.body.username;
   // Render the next page with the username
+  resetChatSession();
   res.render("intellichat", { username: username });
 });
 

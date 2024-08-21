@@ -122,20 +122,20 @@
             </p>
 
             <hr style="border: none; height: 30px" />
-            <div class="chatArea">
+            <div id="chatArea">
               <!-- User Prompt -->
-              <div class="d-flex justify-content-end mb-3">
+              <!-- <div class="d-flex justify-content-end mb-3">
                 <div class="space__for__m"></div>
                 <div class="user_prompt_section">
                   <p class="text-light roboto">Example user prompt</p>
                 </div>
-              </div>
+              </div> -->
               <!--  response-->
-              <div class="card-content mb-3">
+              <!-- <div class="card-content mb-3">
                 <p id="chatResponse" class="text-light roboto">
                   Example section of response.
                 </p>
-              </div>
+              </div> -->
             </div>
             <hr style="border: none; height: 1000px" />
           </div>
@@ -157,40 +157,83 @@
     </div>
 
     <script>
-      document
-        .getElementById("chatForm")
-        .addEventListener("submit", async (event) => {
-          event.preventDefault();
+      const chatContainer = document.getElementById("chatArea");
+      const messageForm = document.getElementById("chatForm");
+      const messageInput = document.getElementById("userMessage");
 
-          const message = document.getElementById("userMessage").value;
-          const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ message }),
-          });
+      messageForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-          const data = await response.json();
+        const message = messageInput.value;
 
-          function formatText(text) {
-            // Replace asterisks with bold tags
-            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        if (message.trim() !== "") {
+          const chatBubble = document.createElement("div");
+          chatBubble.classList.add("d-flex", "justify-content-end", "mb-3");
 
-            // Replace single asterisks with bullets (assuming you want an unordered list)
-            text = text.replace(/\*(.*)/g, "<li>$1</li>");
+          const spaceForM = document.createElement("div");
+          spaceForM.classList.add("space__for__m");
+          chatBubble.appendChild(spaceForM);
 
-            // Replace ## with h1 bold
-            text = text.replace(/^## (.*)/gm, "<h1><strong>$1</strong></h1>");
+          const promptSection = document.createElement("div");
+          promptSection.classList.add("user_prompt_section");
+          chatBubble.appendChild(promptSection);
 
-            // You can add more replacements for other patterns as needed
+          const messageText = document.createElement("p");
+          messageText.classList.add("text-light", "roboto");
+          messageText.textContent = message;
+          promptSection.appendChild(messageText);
 
-            return text;
-          }
+          chatContainer.appendChild(chatBubble);
+          messageInput.value = "";
+        }
 
-          const formattedText = formatText(data.response);
-          document.getElementById("chatResponse").innerHTML = formattedText;
+
+        function createChatBubble(response) {
+          const chatBubbleElement = document.createElement("div");
+          chatBubbleElement.classList.add("card-content", "mb-3");
+
+          const chatBubbleText = document.createElement("p");
+          chatBubbleText.id = "chatResponse";
+          chatBubbleText.classList.add("text-light", "roboto");
+          chatBubbleText.innerHTML = response;
+
+          chatBubbleElement.appendChild(chatBubbleText);
+
+          chatContainer.appendChild(chatBubbleElement);
+        }
+
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message }),
         });
+
+        const data = await response.json();
+
+        function formatText(text) {
+          // Replace asterisks with bold tags
+          text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+          // Replace single asterisks with bullets (assuming you want an unordered list)
+          text = text.replace(/\*(.*)/g, "<li>$1</li>");
+
+          // Replace ## with h1 bold
+          text = text.replace(/^## (.*)/gm, "<h1><strong>$1</strong></h1>");
+
+          // Replace ``` with code format
+          text = text.replace(/^```(.+?)```/gms, "<pre><code>$1</code></pre>");
+
+          return text;
+        }
+
+        const formattedText = formatText(data.response);
+
+        createChatBubble(formattedText);
+
+        // document.getElementById("chatResponse").innerHTML = formattedText;
+      });
     </script>
   </body>
 </html>
