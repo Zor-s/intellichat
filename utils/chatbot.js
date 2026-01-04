@@ -14,7 +14,7 @@ const {
   const genAI = new GoogleGenerativeAI(apiKey);
   
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-3-flash-preview",
   });
   
   const generationConfig = {
@@ -25,36 +25,16 @@ const {
     responseMimeType: "text/plain",
   };
 
-  
-  
-  let chatSession = null;
-  let history = [];
-  
-
-  function resetChatSession() {
-    chatSession = null;
-    history = [];
-  }
-
-
-  async function getChatResponse(message) {
-    if (!chatSession) {
-      chatSession = model.startChat({
-        generationConfig,
-        history: [],
-      });
-    }
-  
-    // Add the user's message to the history
-    history.push({ role: "user", content: message });
+  async function getChatResponse(message, history) {
+    const chatSession = model.startChat({
+      generationConfig,
+      history: history || [],
+    });
   
     const result = await chatSession.sendMessage(message);
-  
-    // Add the bot's response to the history
-    history.push({ role: "bot", content: result.response.text() });
   
     return result.response.text();
   }
   
-  module.exports = { resetChatSession, getChatResponse };
+  module.exports = { getChatResponse };
   

@@ -161,6 +161,39 @@
       const messageForm = document.getElementById("chatForm");
       const messageInput = document.getElementById("userMessage");
 
+      // Initialize chat history
+      let chatHistory = [];
+
+      function formatText(text) {
+        // Replace asterisks with bold tags
+        text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+        // Replace single asterisks with bullets (assuming you want an unordered list)
+        text = text.replace(/\*(.*)/g, "<li>$1</li>");
+
+        // Replace ## with h1 bold
+        text = text.replace(/^## (.*)/gm, "<h1><strong>$1</strong></h1>");
+
+        // Replace ``` with code format
+        text = text.replace(/^```(.+?)```/gms, "<pre><code>$1</code></pre>");
+
+        return text;
+      }
+
+      function createChatBubble(response) {
+        const chatBubbleElement = document.createElement("div");
+        chatBubbleElement.classList.add("card-content", "mb-3");
+
+        const chatBubbleText = document.createElement("p");
+        chatBubbleText.id = "chatResponse";
+        chatBubbleText.classList.add("text-light", "roboto");
+        chatBubbleText.innerHTML = response;
+
+        chatBubbleElement.appendChild(chatBubbleText);
+
+        chatContainer.appendChild(chatBubbleElement);
+      }
+
       messageForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
@@ -185,94 +218,57 @@
 
           chatContainer.appendChild(chatBubble);
           messageInput.value = "";
+
+          // Capture history before adding new message
+          const historyToSend = [...chatHistory];
+
+          // Add user message to history
+          chatHistory.push({ role: "user", parts: [{ text: message }] });
+
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message, history: historyToSend }),
+          });
+
+          const data = await response.json();
+
+          // Add model response to history
+          chatHistory.push({ role: "model", parts: [{ text: data.response }] });
+
+          const formattedText = formatText(data.response);
+
+          createChatBubble(formattedText);
         }
-
-        function createChatBubble(response) {
-          const chatBubbleElement = document.createElement("div");
-          chatBubbleElement.classList.add("card-content", "mb-3");
-
-          const chatBubbleText = document.createElement("p");
-          chatBubbleText.id = "chatResponse";
-          chatBubbleText.classList.add("text-light", "roboto");
-          chatBubbleText.innerHTML = response;
-
-          chatBubbleElement.appendChild(chatBubbleText);
-
-          chatContainer.appendChild(chatBubbleElement);
-        }
-
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ message }),
-        });
-
-        const data = await response.json();
-
-        function formatText(text) {
-          // Replace asterisks with bold tags
-          text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-          // Replace single asterisks with bullets (assuming you want an unordered list)
-          text = text.replace(/\*(.*)/g, "<li>$1</li>");
-
-          // Replace ## with h1 bold
-          text = text.replace(/^## (.*)/gm, "<h1><strong>$1</strong></h1>");
-
-          // Replace ``` with code format
-          text = text.replace(/^```(.+?)```/gms, "<pre><code>$1</code></pre>");
-
-          return text;
-        }
-
-        const formattedText = formatText(data.response);
-
-        createChatBubble(formattedText);
-
-        // document.getElementById("chatResponse").innerHTML = formattedText;
       });
 
       async function sendInitialMessage() {
         let userName = "<%= escape(username) %>";
-        const initialMessage = "Hi! you are a useful ai assistant that will help the user accomplish his/her tasks. Greet the user, his/her name is \""+userName+"\""; // Customize this message as needed
+        const initialMessage = "Hi! you are a useful ai assistant that will help the user accomplish his/her tasks. Greet the user, his/her name is \"" + userName + "\""; // Customize this message as needed
+        
+        // Add initial message to history (internal system prompt context)
+        chatHistory.push({ role: "user", parts: [{ text: initialMessage }] });
+
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ message: initialMessage }),
+          body: JSON.stringify({ message: initialMessage, history: [] }), 
         });
 
         const data = await response.json();
 
-        function formatText(text) {
-          text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-          text = text.replace(/\*(.*)/g, "<li>$1</li>");
-          text = text.replace(/^## (.*)/gm, "<h1><strong>$1</strong></h1>");
-          text = text.replace(/^```(.+?)```/gms, "<pre><code>$1</code></pre>");
-          return text;
-        }
+        // Add model response to history
+        chatHistory.push({ role: "model", parts: [{ text: data.response }] });
 
         const formattedText = formatText(data.response);
 
         createChatBubble(formattedText);
       }
 
-      function createChatBubble(response) {
-        const chatBubbleElement = document.createElement("div");
-        chatBubbleElement.classList.add("card-content", "mb-3");
-
-        const chatBubbleText = document.createElement("p");
-        chatBubbleText.id = "chatResponse";
-        chatBubbleText.classList.add("text-light", "roboto");
-        chatBubbleText.innerHTML = response;
-
-        chatBubbleElement.appendChild(chatBubbleText);
-
-        chatContainer.appendChild(chatBubbleElement);
-      }
       window.onload = sendInitialMessage;
     </script>
   </body>
